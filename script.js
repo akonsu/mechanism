@@ -9,6 +9,11 @@ if (!window.requestAnimationFrame) {
                                     || function (callback) { window.setTimeout(callback, 1000 / 60) });
 }
 
+function add_mod(value, delta, count) {
+    var n = (value + delta) % count;
+    return n < 0 ? count + n : n;
+}
+
 function delay(f) {
     var _arguments = Array.prototype.slice.call(arguments, 1);
     return function () { f.apply(window, _arguments) };
@@ -24,16 +29,17 @@ function delay(f) {
     var rotimation;
     var x_orig;
 
+
     var adImages = new Array("shoeImages/A.png","shoeImages/B.png","shoeImages/C.png","shoeImages/D.png","shoeImages/E.png","shoeImages/F.png","shoeImages/G.png","shoeImages/H.png","shoeImages/I.png","shoeImages/J.png","shoeImages/K.png","shoeImages/L.png","shoeImages/M.png","shoeImages/N.png","shoeImages/O.png","shoeImages/P.png");
+
+    //var adImages = new Array("shoeImages/A.png","shoeImages/B.png","shoeImages/C.png");
 
     function animate(prev_time) {
         var UPDATE_INTERVAL = 1000 / 2;
         var time = +new Date(); // same as new Date().getTime()
 
         if (time > prev_time + UPDATE_INTERVAL) {
-            frame_num = forwards
-                ? (frame_num + 1) % adImages.length
-                : (frame_num || adImages.length) - 1;
+            frame_num = add_mod(frame_num, forwards ? 1 : -1, adImages.length);
             rotimation.src = adImages[frame_num];
             prev_time = time;
         }
@@ -73,10 +79,9 @@ function delay(f) {
                 var PIXELS_PER_FRAME = 10;
                 var d = Math.floor((e.screenX - x_orig) / PIXELS_PER_FRAME);
 
-                if (d > 0) {
-                    frame_num = (frame_orig + d) % adImages.length;
-                    rotimation.src = adImages[frame_num];
-                }
+                frame_num = add_mod(frame_orig, d, adImages.length);
+                rotimation.src = adImages[frame_num];
+
                 return false;
             }
         };
