@@ -70,8 +70,8 @@ function delay(f) {
             var image = new Image();
             var ul = document.getElementById("downloadIndicator");
 
-            image.onload = function (e) {
-                var path = e.target.src;
+            image.onload = function () {
+                var path = this.src;
 
                 // BEGIN--REMOVE FROM PRODUCTION CODE
                 var li = document.createElement("li");
@@ -103,19 +103,23 @@ function delay(f) {
 
         rotimation.onmousedown = function (e) {
             if (!dragging) {
+                var v = e || window.event;
+
                 dragging = true;
                 frame_orig = frame_num;
-                x_orig = e.screenX;
+                x_orig = v.screenX;
                 rotating_prev = rotating;
                 rotating = false;
+
                 return false;
             }
         };
 
         document.onmousemove = function (e) {
             if (dragging && frames.length > 0) {
+                var v = e || window.event;
                 var PIXELS_PER_FRAME = 10;
-                var d = Math.floor((e.screenX - x_orig) / PIXELS_PER_FRAME);
+                var d = Math.floor((v.screenX - x_orig) / PIXELS_PER_FRAME);
 
                 frame_num = add_mod(frame_orig, d, frames.length);
                 rotimation.src = frames[frame_num];
