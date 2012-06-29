@@ -1,16 +1,9 @@
 @charset "UTF-8";
 
-.aniPosition {
-	position: absolute;
-	float: left;
-	left: 50px;
-	top: 30px;
+ul#downloadIndicator li {
+    display: inline;
+    margin: 0 0.5em;
 }
-h2 {
-	position: absolute;
-	float: left;
-	left: 50px;
-	top: 450px;
-	width: 394px;
-	height: 59px;
+.animation {
+    text-align: center;
 }

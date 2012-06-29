@@ -1,3 +1,5 @@
+/* -*- mode:javascript; coding:utf-8; -*- Time-stamp: <script.js - root> */
+
 //
 // fix window.requestAnimationFrame
 //
@@ -24,23 +26,38 @@ function delay(f) {
     var forwards = false;
     var frame_num = 0;
     var frame_orig;
+    var frames = [];
     var rotating = false;
     var rotating_prev;
     var rotimation;
     var x_orig;
 
-
-    var adImages = new Array("shoeImages/A.png","shoeImages/B.png","shoeImages/C.png","shoeImages/D.png","shoeImages/E.png","shoeImages/F.png","shoeImages/G.png","shoeImages/H.png","shoeImages/I.png","shoeImages/J.png","shoeImages/K.png","shoeImages/L.png","shoeImages/M.png","shoeImages/N.png","shoeImages/O.png","shoeImages/P.png");
-
-    //var adImages = new Array("shoeImages/A.png","shoeImages/B.png","shoeImages/C.png");
+    var loadOrder = [
+        "shoeImages/A.png",
+        "shoeImages/I.png",
+        "shoeImages/E.png",
+        "shoeImages/M.png",
+        "shoeImages/C.png",
+        "shoeImages/K.png",
+        "shoeImages/G.png",
+        "shoeImages/O.png",
+        "shoeImages/F.png",
+        "shoeImages/N.png",
+        "shoeImages/B.png",
+        "shoeImages/J.png",
+        "shoeImages/P.png",
+        "shoeImages/H.png",
+        "shoeImages/D.png",
+        "shoeImages/L.png"
+    ];
 
     function animate(prev_time) {
         var UPDATE_INTERVAL = 1000 / 2;
         var time = +new Date(); // same as new Date().getTime()
 
         if (time > prev_time + UPDATE_INTERVAL) {
-            frame_num = add_mod(frame_num, forwards ? 1 : -1, adImages.length);
-            rotimation.src = adImages[frame_num];
+            frame_num = add_mod(frame_num, forwards ? 1 : -1, frames.length);
+            rotimation.src = frames[frame_num];
             prev_time = time;
         }
         if (rotating) {
@@ -48,19 +65,40 @@ function delay(f) {
         }
     }
 
+    function load_frame(index) {
+        if (index < loadOrder.length) {
+            var image = new Image();
+            var ul = document.getElementById("downloadIndicator");
+
+            image.onload = function (e) {
+                var path = e.target.src;
+
+                // BEGIN--REMOVE FROM PRODUCTION CODE
+                var li = document.createElement("li");
+                li.innerHTML = path.replace(/^https?:\/\/(?:[^\/]+\/)*/, "").replace(/\..*$/, "");
+                ul.appendChild(li);
+                // END--REMOVE FROM PRODUCTION CODE
+
+                // insert path in order
+                for (var i = 0, count = frames.length; i < count && frames[i] < path; i++);
+                frames.splice(i, 0, path);
+
+                // make sure the current frame stays intact
+                if (i <= frame_num) {
+                    frame_num++;
+                }
+                if (!rotimation.src) {
+                    rotimation.src = path;
+                }
+
+                // load next frame
+                load_frame(index + 1);
+            };
+            image.src = loadOrder[index];
+        }
+    }
+
     window.onload = function () {
-        var f =  function (b) {
-            if (!rotating) {
-                rotating = true;
-                animate(+new Date());
-            }
-            forwards = b;
-        };
-
-        document.getElementById("rotate-back").onclick = delay(f, false);
-        document.getElementById("rotate-for").onclick = delay(f, true);
-        document.getElementById("rotate-stop").onclick = function () { rotating = false };
-
         rotimation = document.getElementById("rotimation");
 
         rotimation.onmousedown = function (e) {
@@ -75,12 +113,12 @@ function delay(f) {
         };
 
         document.onmousemove = function (e) {
-            if (dragging) {
+            if (dragging && frames.length > 0) {
                 var PIXELS_PER_FRAME = 10;
                 var d = Math.floor((e.screenX - x_orig) / PIXELS_PER_FRAME);
 
-                frame_num = add_mod(frame_orig, d, adImages.length);
-                rotimation.src = adImages[frame_num];
+                frame_num = add_mod(frame_orig, d, frames.length);
+                rotimation.src = frames[frame_num];
 
                 return false;
             }
@@ -98,6 +136,6 @@ function delay(f) {
             }
         };
 
-        rotimation.src = adImages[frame_num];
+        load_frame(0);
     };
 })(window);
