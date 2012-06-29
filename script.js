@@ -68,23 +68,24 @@ function delay(f) {
     function load_frame(index) {
         if (index < loadOrder.length) {
             var image = new Image();
-            var ul = document.getElementById("downloadIndicator");
 
             image.onload = function () {
+                var count = frames.length;
                 var path = this.src;
 
                 // BEGIN--REMOVE FROM PRODUCTION CODE
+                var ul = document.getElementById("downloadIndicator");
                 var li = document.createElement("li");
                 li.innerHTML = path.replace(/^https?:\/\/(?:[^\/]+\/)*/, "").replace(/\..*$/, "");
                 ul.appendChild(li);
                 // END--REMOVE FROM PRODUCTION CODE
 
                 // insert path in order
-                for (var i = 0, count = frames.length; i < count && frames[i] < path; i++);
+                for (var i = 0; i < count && frames[i] < path; i++);
                 frames.splice(i, 0, path);
 
                 // make sure the current frame stays intact
-                if (i <= frame_num) {
+                if (i <= frame_num && frame_num < count) {
                     frame_num++;
                 }
                 if (!rotimation.src) {
