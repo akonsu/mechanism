@@ -129,7 +129,7 @@ function delay(f) {
             }
         };
 
-        document.onmouseup = function (e) {
+        document.onmouseup = function () {
             if (dragging) {
                 dragging = false;
                 rotating = rotating_prev;
