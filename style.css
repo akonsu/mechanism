@@ -4,6 +4,11 @@ ul#downloadIndicator li {
     display: inline;
     margin: 0 0.5em;
 }
-.animation {
-    text-align: center;
+div.animation {
+    overflow: hidden;
+    width: 360px;
+    height: 428px;
+}
+div.animation img {
+    position: relative;
 }

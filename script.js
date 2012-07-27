@@ -1,36 +1,18 @@
 /* -*- mode:javascript; coding:utf-8; -*- Time-stamp: <script.js - root> */
 
-//
-// fix window.requestAnimationFrame
-//
-if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = (window.webkitRequestAnimationFrame
-                                    || window.mozRequestAnimationFrame
-                                    || window.oRequestAnimationFrame
-                                    || window.msRequestAnimationFrame
-                                    || function (callback) { window.setTimeout(callback, 1000 / 60) });
-}
-
 function add_mod(value, delta, count) {
     var n = (value + delta) % count;
     return n < 0 ? count + n : n;
 }
 
-function delay(f) {
-    var _arguments = Array.prototype.slice.call(arguments, 1);
-    return function () { f.apply(window, _arguments) };
-}
-
 (function (window) {
+    var click;
     var dragging = false;
-    var forwards = false;
     var frame_num = 0;
-    var frame_orig;
+    var frame_prev;
     var frames = [];
-    var rotating = false;
-    var rotating_prev;
     var rotimation;
-    var x_orig;
+    var x_prev;
 
     var loadOrder = [
         "shoeImages/A.png",
@@ -50,20 +32,6 @@ function delay(f) {
         "shoeImages/D.png",
         "shoeImages/L.png"
     ];
-
-    function animate(prev_time) {
-        var UPDATE_INTERVAL = 1000 / 2;
-        var time = +new Date(); // same as new Date().getTime()
-
-        if (time > prev_time + UPDATE_INTERVAL) {
-            frame_num = add_mod(frame_num, forwards ? 1 : -1, frames.length);
-            rotimation.src = frames[frame_num];
-            prev_time = time;
-        }
-        if (rotating) {
-            window.requestAnimationFrame(delay(animate, prev_time));
-        }
-    }
 
     function load_frame(index) {
         if (index < loadOrder.length) {
@@ -99,48 +67,87 @@ function delay(f) {
         }
     }
 
+    function rotate_onmousedown(e) {
+        if (!dragging) {
+            var v = e || window.event;
+
+            click = true;
+            dragging = true;
+            frame_prev = frame_num;
+            x_prev = v.screenX;
+
+            return false;
+        }
+    }
+
+    function rotate_onmousemove(e) {
+        if (dragging && frames.length > 0) {
+            var v = e || window.event;
+            var d = v.screenX - x_prev;
+
+            if (Math.abs(d) > 0) {
+                frame_num = add_mod(frame_prev, d ? d > 0 ? 1 : -1 : 0, frames.length);
+                rotimation.src = frames[frame_num];
+                frame_prev = frame_num;
+                x_prev = v.screenX;
+            }
+            click = false;
+            return false;
+        }
+    }
+
+    function rotate_onmouseup() {
+        if (dragging) {
+            if (click) {
+                rotimation.width_orig = rotimation.style.width;
+                rotimation.style.width = "auto";
+                rotimation.onmousedown = zoom_onmousedown;
+                document.onmousemove = zoom_onmousemove;
+                document.onmouseup = zoom_onmouseup;
+            }
+            dragging = false;
+            return false;
+        }
+    }
+
+    function zoom_onmousedown(e) {
+        if (!dragging) {
+            var v = e || window.event;
+
+            click = true;
+            dragging = true;
+
+            return false;
+        }
+    }
+
+    function zoom_onmousemove(e) {
+        if (dragging && frames.length > 0) {
+            var v = e || window.event;
+
+            click = false;
+            return false;
+        }
+    }
+
+    function zoom_onmouseup() {
+        if (dragging) {
+            if (click) {
+                rotimation.style.width = rotimation.width_orig;
+                rotimation.onmousedown = rotate_onmousedown;
+                document.onmousemove = rotate_onmousemove;
+                document.onmouseup = rotate_onmouseup;
+            }
+            dragging = false;
+            return false;
+        }
+    }
+
     window.onload = function () {
         rotimation = document.getElementById("rotimation");
-
-        rotimation.onmousedown = function (e) {
-            if (!dragging) {
-                var v = e || window.event;
-
-                dragging = true;
-                frame_orig = frame_num;
-                x_orig = v.screenX;
-                rotating_prev = rotating;
-                rotating = false;
-
-                return false;
-            }
-        };
-
-        document.onmousemove = function (e) {
-            if (dragging && frames.length > 0) {
-                var v = e || window.event;
-                var PIXELS_PER_FRAME = 10;
-                var d = Math.floor((v.screenX - x_orig) / PIXELS_PER_FRAME);
-
-                frame_num = add_mod(frame_orig, d, frames.length);
-                rotimation.src = frames[frame_num];
-
-                return false;
-            }
-        };
-
-        document.onmouseup = function () {
-            if (dragging) {
-                dragging = false;
-                rotating = rotating_prev;
-
-                if (rotating) {
-                    animate(+new Date());
-                }
-                return false;
-            }
-        };
-
+        rotimation.onmousedown = rotate_onmousedown;
+        document.onmousemove = rotate_onmousemove;
+        document.onmouseup = rotate_onmouseup;
         load_frame(0);
     };
 })(window);
