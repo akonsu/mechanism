@@ -8,6 +8,8 @@ function add_mod(value, delta, count) {
 (function (window) {
     var click;
     var dragging = false;
+    var dx;
+    var dy;
     var frame_num = 0;
     var frame_prev;
     var frames = [];
@@ -73,6 +75,7 @@ function add_mod(value, delta, count) {
 
             click = true;
             dragging = true;
+
             frame_prev = frame_num;
             x_prev = v.screenX;
 
@@ -99,8 +102,12 @@ function add_mod(value, delta, count) {
     function rotate_onmouseup() {
         if (dragging) {
             if (click) {
+                rotimation.left_orig = rotimation.style.left;
+                rotimation.top_orig = rotimation.style.top;
                 rotimation.width_orig = rotimation.style.width;
+
                 rotimation.style.width = "auto";
+
                 rotimation.onmousedown = zoom_onmousedown;
                 document.onmousemove = zoom_onmousemove;
                 document.onmouseup = zoom_onmouseup;
@@ -117,13 +124,31 @@ function add_mod(value, delta, count) {
             click = true;
             dragging = true;
 
+            dx = parseInt(this.style.left + 0) - v.clientX;
+            dy = parseInt(this.style.top + 0) - v.clientY;
+
             return false;
         }
     }
 
     function zoom_onmousemove(e) {
-        if (dragging && frames.length > 0) {
+        if (dragging) {
             var v = e || window.event;
+
+            var container = rotimation.parentNode;
+            var r0 = container.getBoundingClientRect();
+            var r1 = rotimation.getBoundingClientRect();
+
+            var W = r0.right - r0.left;
+            var H = r0.bottom - r0.top;
+            var w = r1.right - r1.left;
+            var h = r1.bottom - r1.top;
+
+            var x = Math.min(0, Math.max(W - w, dx + v.clientX));
+            var y = Math.min(0, Math.max(H - h, dy + v.clientY));
+
+            rotimation.style.left = x + "px";
+            rotimation.style.top = y + "px";
 
             click = false;
             return false;
@@ -133,7 +158,10 @@ function add_mod(value, delta, count) {
     function zoom_onmouseup() {
         if (dragging) {
             if (click) {
+                rotimation.style.left = rotimation.left_orig;
+                rotimation.style.top = rotimation.top_orig;
                 rotimation.style.width = rotimation.width_orig;
+
                 rotimation.onmousedown = rotate_onmousedown;
                 document.onmousemove = rotate_onmousemove;
                 document.onmouseup = rotate_onmouseup;
