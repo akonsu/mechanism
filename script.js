@@ -1,8 +1,24 @@
 /* -*- mode:javascript; coding:utf-8; -*- Time-stamp: <script.js - root> */
 
+//
+// fix window.requestAnimationFrame
+//
+if (!window.requestAnimationFrame) {
+    window.requestAnimationFrame = (window.webkitRequestAnimationFrame
+                                    || window.mozRequestAnimationFrame
+                                    || window.oRequestAnimationFrame
+                                    || window.msRequestAnimationFrame
+                                    || function (callback) { window.setTimeout(callback, 1000 / 60) });
+}
+
 function add_mod(value, delta, count) {
     var n = (value + delta) % count;
     return n < 0 ? count + n : n;
+}
+
+function delay(f) {
+    var _arguments = Array.prototype.slice.call(arguments, 1);
+    return function () { f.apply(window, _arguments) };
 }
 
 (function (window) {
@@ -11,8 +27,10 @@ function add_mod(value, delta, count) {
     var dragging = false;
     var dx;
     var dy;
+    var forwards;
     var frame_num = 0;
     var frames = [];
+    var rotating;
     var x_prev;
 
     var loadOrder = [
@@ -34,6 +52,21 @@ function add_mod(value, delta, count) {
         "shoeImages/L.png"
     ];
 
+    function animate(prev_time) {
+        var UPDATE_INTERVAL = 1000 / 10; // rotation speed in milliseconds per frame
+        var time = +new Date();          // same as new Date().getTime()
+
+        if (time > prev_time + UPDATE_INTERVAL) {
+            frames[frame_num].style.display = "none";
+            frame_num = add_mod(frame_num, forwards ? 1 : -1, frames.length);
+            frames[frame_num].style.display = "";
+            prev_time = time;
+        }
+        if (rotating) {
+            window.requestAnimationFrame(delay(animate, prev_time));
+        }
+    }
+
     function load_frame(index) {
         if (index < loadOrder.length) {
             var image = new Image();
@@ -43,10 +76,15 @@ function add_mod(value, delta, count) {
                 var path = this.src;
 
                 // BEGIN--REMOVE FROM PRODUCTION CODE
-                var ul = document.getElementById("downloadIndicator");
-                var li = document.createElement("li");
-                li.innerHTML = path.replace(/^https?:\/\/(?:[^\/]+\/)*/, "").replace(/\..*$/, "");
-                ul.appendChild(li);
+                try {
+                    var ul = document.getElementById("downloadIndicator");
+                    var li = document.createElement("li");
+                    li.innerHTML = path.replace(/^https?:\/\/(?:[^\/]+\/)*/, "").replace(/\..*$/, "");
+                    ul.appendChild(li);
+                }
+                catch (_) {
+                    // ignore
+                }
                 // END--REMOVE FROM PRODUCTION CODE
 
                 // insert path in order
@@ -75,6 +113,7 @@ function add_mod(value, delta, count) {
 
             click = true;
             dragging = true;
+            rotating = false;
             x_prev = v.screenX;
 
             return false;
@@ -109,6 +148,17 @@ function add_mod(value, delta, count) {
                 frame.style.width = "auto";
                 frame.style.height = "auto";
 
+                var r = frame.getBoundingClientRect();
+
+                frame.client_width = r.right - r.left;
+                frame.client_height = r.bottom - r.top;
+
+                var x = (container.client_width - frame.client_width) / 2;
+                var y = (container.client_height - frame.client_height) / 2;
+
+                frame.style.left = x + "px";
+                frame.style.top = y + "px";
+
                 container.onmousedown = zoom_onmousedown;
                 document.onmousemove = zoom_onmousemove;
                 document.onmouseup = zoom_onmouseup;
@@ -137,17 +187,8 @@ function add_mod(value, delta, count) {
         if (dragging) {
             var v = e || window.event;
             var frame = frames[frame_num];
-
-            var r0 = container.getBoundingClientRect();
-            var r1 = frame.getBoundingClientRect();
-
-            var W = r0.right - r0.left;
-            var H = r0.bottom - r0.top;
-            var w = r1.right - r1.left;
-            var h = r1.bottom - r1.top;
-
-            var x = Math.min(0, Math.max(W - w, dx + v.clientX));
-            var y = Math.min(0, Math.max(H - h, dy + v.clientY));
+            var x = Math.min(0, Math.max(container.client_width - frame.client_width, dx + v.clientX));
+            var y = Math.min(0, Math.max(container.client_height - frame.client_height, dy + v.clientY));
 
             frame.style.left = x + "px";
             frame.style.top = y + "px";
@@ -177,6 +218,12 @@ function add_mod(value, delta, count) {
 
     window.onload = function () {
         container = document.getElementById("container");
+
+        var r = container.getBoundingClientRect();
+
+        container.client_width = r.right - r.left;
+        container.client_height = r.bottom - r.top;
+
         container.onmousedown = rotate_onmousedown;
         document.onmousemove = rotate_onmousemove;
         document.onmouseup = rotate_onmouseup;
@@ -186,5 +233,10 @@ function add_mod(value, delta, count) {
             container.removeChild(container.firstChild);
         }
         load_frame(0);
+
+        // start rotation
+        forwards = Math.random() < 0.5;
+        rotating = true;
+        animate(+new Date());
     };
 })(window);
