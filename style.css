@@ -5,10 +5,13 @@ ul#downloadIndicator li {
     margin: 0 0.5em;
 }
 div.animation {
+    margin: 40px;
     overflow: hidden;
     width: 360px;
     height: 428px;
 }
 div.animation img {
     position: relative;
+    width: 300px;
+    height: auto;
 }

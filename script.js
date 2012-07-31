@@ -7,13 +7,12 @@ function add_mod(value, delta, count) {
 
 (function (window) {
     var click;
+    var container;
     var dragging = false;
     var dx;
     var dy;
     var frame_num = 0;
-    var frame_prev;
     var frames = [];
-    var rotimation;
     var x_prev;
 
     var loadOrder = [
@@ -51,16 +50,17 @@ function add_mod(value, delta, count) {
                 // END--REMOVE FROM PRODUCTION CODE
 
                 // insert path in order
-                for (var i = 0; i < count && frames[i] < path; i++);
-                frames.splice(i, 0, path);
+                for (var i = 0; i < count && frames[i].src < path; i++);
+                frames.splice(i, 0, this);
 
                 // make sure the current frame stays intact
                 if (i <= frame_num && frame_num < count) {
                     frame_num++;
                 }
-                if (!rotimation.src) {
-                    rotimation.src = path;
-                }
+
+                // insert element
+                this.style.display = this === frames[frame_num] ? "" : "none";
+                container.appendChild(this);
 
                 // load next frame
                 load_frame(index + 1);
@@ -75,8 +75,6 @@ function add_mod(value, delta, count) {
 
             click = true;
             dragging = true;
-
-            frame_prev = frame_num;
             x_prev = v.screenX;
 
             return false;
@@ -89,9 +87,9 @@ function add_mod(value, delta, count) {
             var d = v.screenX - x_prev;
 
             if (Math.abs(d) > 0) {
-                frame_num = add_mod(frame_prev, d ? d > 0 ? 1 : -1 : 0, frames.length);
-                rotimation.src = frames[frame_num];
-                frame_prev = frame_num;
+                frames[frame_num].style.display = "none";
+                frame_num = add_mod(frame_num, d ? d > 0 ? 1 : -1 : 0, frames.length);
+                frames[frame_num].style.display = "";
                 x_prev = v.screenX;
             }
             click = false;
@@ -102,13 +100,16 @@ function add_mod(value, delta, count) {
     function rotate_onmouseup() {
         if (dragging) {
             if (click) {
-                rotimation.left_orig = rotimation.style.left;
-                rotimation.top_orig = rotimation.style.top;
-                rotimation.width_orig = rotimation.style.width;
+                var frame = frames[frame_num];
 
-                rotimation.style.width = "auto";
+                container.left_orig = frame.style.left;
+                container.top_orig = frame.style.top;
+                container.width_orig = frame.style.width;
 
-                rotimation.onmousedown = zoom_onmousedown;
+                frame.style.width = "auto";
+                frame.style.height = "auto";
+
+                container.onmousedown = zoom_onmousedown;
                 document.onmousemove = zoom_onmousemove;
                 document.onmouseup = zoom_onmouseup;
             }
@@ -120,12 +121,13 @@ function add_mod(value, delta, count) {
     function zoom_onmousedown(e) {
         if (!dragging) {
             var v = e || window.event;
+            var frame = frames[frame_num];
 
             click = true;
             dragging = true;
 
-            dx = parseInt(this.style.left + 0) - v.clientX;
-            dy = parseInt(this.style.top + 0) - v.clientY;
+            dx = parseInt(frame.style.left + 0) - v.clientX;
+            dy = parseInt(frame.style.top + 0) - v.clientY;
 
             return false;
         }
@@ -134,10 +136,10 @@ function add_mod(value, delta, count) {
     function zoom_onmousemove(e) {
         if (dragging) {
             var v = e || window.event;
+            var frame = frames[frame_num];
 
-            var container = rotimation.parentNode;
             var r0 = container.getBoundingClientRect();
-            var r1 = rotimation.getBoundingClientRect();
+            var r1 = frame.getBoundingClientRect();
 
             var W = r0.right - r0.left;
             var H = r0.bottom - r0.top;
@@ -147,8 +149,8 @@ function add_mod(value, delta, count) {
             var x = Math.min(0, Math.max(W - w, dx + v.clientX));
             var y = Math.min(0, Math.max(H - h, dy + v.clientY));
 
-            rotimation.style.left = x + "px";
-            rotimation.style.top = y + "px";
+            frame.style.left = x + "px";
+            frame.style.top = y + "px";
 
             click = false;
             return false;
@@ -158,11 +160,13 @@ function add_mod(value, delta, count) {
     function zoom_onmouseup() {
         if (dragging) {
             if (click) {
-                rotimation.style.left = rotimation.left_orig;
-                rotimation.style.top = rotimation.top_orig;
-                rotimation.style.width = rotimation.width_orig;
+                var frame = frames[frame_num];
 
-                rotimation.onmousedown = rotate_onmousedown;
+                frame.style.left = container.left_orig;
+                frame.style.top = container.top_orig;
+                frame.style.width = container.width_orig;
+
+                container.onmousedown = rotate_onmousedown;
                 document.onmousemove = rotate_onmousemove;
                 document.onmouseup = rotate_onmouseup;
             }
@@ -172,10 +176,15 @@ function add_mod(value, delta, count) {
     }
 
     window.onload = function () {
-        rotimation = document.getElementById("rotimation");
-        rotimation.onmousedown = rotate_onmousedown;
+        container = document.getElementById("container");
+        container.onmousedown = rotate_onmousedown;
         document.onmousemove = rotate_onmousemove;
         document.onmouseup = rotate_onmouseup;
+
+        // remove existing elements
+        while (container.hasChildNodes()) {
+            container.removeChild(container.firstChild);
+        }
         load_frame(0);
     };
 })(window);
