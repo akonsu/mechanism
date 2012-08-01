@@ -21,6 +21,22 @@ function delay(f) {
     return function () { f.apply(window, _arguments) };
 }
 
+function event_bind(element, name, handler) {
+    if (element.addEventListener) {
+        element.addEventListener(name, handler, false);
+    } else if (element.attachEvent) {
+        element.attachEvent("on" + name, handler);
+    }
+}
+
+function event_unbind(element, name, handler) {
+    if (element.removeEventListener) {
+        element.removeEventListener(name, handler, false);
+    } else if (element.detachEvent) {
+        element.detachEvent("on" + name, handler);
+    }
+}
+
 (function (window) {
     var click;
     var container;
@@ -154,11 +170,34 @@ function delay(f) {
                 container.onmousedown = zoom_onmousedown;
                 document.onmousemove = zoom_onmousemove;
                 document.onmouseup = zoom_onmouseup;
+
+                event_unbind(container, "touchstart", rotate_ontouchstart);
+                event_unbind(container, "touchmove", rotate_ontouchmove);
+                event_unbind(container, "touchend", rotate_ontouchend);
+
+                event_bind(container, "touchstart", zoom_ontouchstart);
+                event_bind(container, "touchmove", zoom_ontouchmove);
+                event_bind(container, "touchend", zoom_ontouchend);
             }
             dragging = false;
             rotating = false;
         }
         return false;
+    }
+
+    function rotate_ontouchstart(e) {
+        e.preventDefault();
+        rotate_onmousedown(e.touches[0]);
+    }
+
+    function rotate_ontouchmove(e) {
+        e.preventDefault();
+        rotate_onmousemove(e.touches[0]);
+    }
+
+    function rotate_ontouchend(e) {
+        e.preventDefault();
+        rotate_onmouseup(e.touches[0]);
     }
 
     function zoom_onmousedown(e) {
@@ -184,8 +223,9 @@ function delay(f) {
             frame.style.left = x + "px";
             frame.style.top = y + "px";
             click = false;
+
+            return false;
         }
-        return false;
     }
 
     function zoom_onmouseup() {
@@ -201,10 +241,33 @@ function delay(f) {
                 container.onmousedown = rotate_onmousedown;
                 document.onmousemove = rotate_onmousemove;
                 document.onmouseup = rotate_onmouseup;
+
+                event_unbind(container, "touchstart", zoom_ontouchstart);
+                event_unbind(container, "touchmove", zoom_ontouchmove);
+                event_unbind(container, "touchend", zoom_ontouchend);
+
+                event_bind(container, "touchstart", rotate_ontouchstart);
+                event_bind(container, "touchmove", rotate_ontouchmove);
+                event_bind(container, "touchend", rotate_ontouchend);
             }
             dragging = false;
         }
         return false;
+    }
+
+    function zoom_ontouchstart(e) {
+        e.preventDefault();
+        zoom_onmousedown(e.touches[0]);
+    }
+
+    function zoom_ontouchmove(e) {
+        e.preventDefault();
+        zoom_onmousemove(e.touches[0]);
+    }
+
+    function zoom_ontouchend(e) {
+        e.preventDefault();
+        zoom_onmouseup(e.touches[0]);
     }
 
     window.onload = function () {
@@ -218,6 +281,10 @@ function delay(f) {
         container.onmousedown = rotate_onmousedown;
         document.onmousemove = rotate_onmousemove;
         document.onmouseup = rotate_onmouseup;
+
+        event_bind(container, "touchstart", rotate_ontouchstart);
+        event_bind(container, "touchmove", rotate_ontouchmove);
+        event_bind(container, "touchend", rotate_ontouchend);
 
         // remove existing elements
         while (container.hasChildNodes()) {
