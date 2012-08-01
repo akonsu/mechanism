@@ -53,18 +53,19 @@ function delay(f) {
     ];
 
     function animate(prev_time) {
-        var UPDATE_INTERVAL = 1000 / 10; // rotation speed in milliseconds per frame
-        var time = +new Date();          // same as new Date().getTime()
+        if (rotating){
+            var UPDATE_INTERVAL = 1000 / 20; // rotation speed in milliseconds per frame
+            var time = +new Date();          // same as new Date().getTime()
 
-        if (time > prev_time + UPDATE_INTERVAL) {
-            frames[frame_num].style.display = "none";
-            frame_num = add_mod(frame_num, forwards ? 1 : -1, frames.length);
-            frames[frame_num].style.display = "";
-            prev_time = time;
+            if (time > prev_time + UPDATE_INTERVAL) {
+                frames[frame_num].style.display = "none";
+                frame_num = add_mod(frame_num, forwards ? 1 : -1, frames.length);
+                frames[frame_num].style.display = "";
+                prev_time = time;
+                rotating = !dragging;
+            }
         }
-        if (rotating) {
-            window.requestAnimationFrame(delay(animate, prev_time));
-        }
+        window.requestAnimationFrame(delay(animate, prev_time));
     }
 
     function load_frame(index) {
@@ -115,35 +116,26 @@ function delay(f) {
             dragging = true;
             rotating = false;
             x_prev = v.screenX;
-
-            return false;
         }
+        return false;
     }
 
     function rotate_onmousemove(e) {
         if (dragging && frames.length > 0) {
             var v = e || window.event;
-            var d = v.screenX - x_prev;
 
-            if (Math.abs(d) > 0) {
-                frames[frame_num].style.display = "none";
-                frame_num = add_mod(frame_num, d ? d > 0 ? 1 : -1 : 0, frames.length);
-                frames[frame_num].style.display = "";
-                x_prev = v.screenX;
-            }
             click = false;
-            return false;
+            forwards = x_prev < v.screenX
+            rotating = true;
+            x_prev = v.screenX;
         }
+        return false;
     }
 
     function rotate_onmouseup() {
         if (dragging) {
             if (click) {
                 var frame = frames[frame_num];
-
-                container.left_orig = frame.style.left;
-                container.top_orig = frame.style.top;
-                container.width_orig = frame.style.width;
 
                 frame.style.width = "auto";
                 frame.style.height = "auto";
@@ -164,8 +156,9 @@ function delay(f) {
                 document.onmouseup = zoom_onmouseup;
             }
             dragging = false;
-            return false;
+            rotating = false;
         }
+        return false;
     }
 
     function zoom_onmousedown(e) {
@@ -175,12 +168,10 @@ function delay(f) {
 
             click = true;
             dragging = true;
-
             dx = parseInt(frame.style.left + 0) - v.clientX;
             dy = parseInt(frame.style.top + 0) - v.clientY;
-
-            return false;
         }
+        return false;
     }
 
     function zoom_onmousemove(e) {
@@ -192,10 +183,9 @@ function delay(f) {
 
             frame.style.left = x + "px";
             frame.style.top = y + "px";
-
             click = false;
-            return false;
         }
+        return false;
     }
 
     function zoom_onmouseup() {
@@ -203,17 +193,18 @@ function delay(f) {
             if (click) {
                 var frame = frames[frame_num];
 
-                frame.style.left = container.left_orig;
-                frame.style.top = container.top_orig;
-                frame.style.width = container.width_orig;
+                frame.style.left = "";
+                frame.style.top = "";
+                frame.style.width = "";
+                frame.style.height = "";
 
                 container.onmousedown = rotate_onmousedown;
                 document.onmousemove = rotate_onmousemove;
                 document.onmouseup = rotate_onmouseup;
             }
             dragging = false;
-            return false;
         }
+        return false;
     }
 
     window.onload = function () {
