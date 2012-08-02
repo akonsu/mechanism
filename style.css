@@ -15,3 +15,15 @@ div.animation img {
     width: 300px;
     height: auto;
 }
+.cursor-none {
+    cursor: none;
+}
+.cursor-drag {
+    cursor: url("cursorImages/cuDrag.ico"), auto;
+}
+.cursor-over {
+    cursor: url("cursorImages/cuOver.ico"), auto;
+}
+.cursor-reduce {
+    cursor: url("cursorImages/cuReduce.ico"), auto;
+}

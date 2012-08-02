@@ -4,37 +4,11 @@
 // fix window.requestAnimationFrame
 //
 if (!window.requestAnimationFrame) {
-    window.requestAnimationFrame = (window.webkitRequestAnimationFrame
-                                    || window.mozRequestAnimationFrame
-                                    || window.oRequestAnimationFrame
-                                    || window.msRequestAnimationFrame
-                                    || function (callback) { window.setTimeout(callback, 1000 / 60) });
-}
-
-function add_mod(value, delta, count) {
-    var n = (value + delta) % count;
-    return n < 0 ? count + n : n;
-}
-
-function delay(f) {
-    var _arguments = Array.prototype.slice.call(arguments, 1);
-    return function () { f.apply(window, _arguments) };
-}
-
-function event_bind(element, name, handler) {
-    if (element.addEventListener) {
-        element.addEventListener(name, handler, false);
-    } else if (element.attachEvent) {
-        element.attachEvent("on" + name, handler);
-    }
-}
-
-function event_unbind(element, name, handler) {
-    if (element.removeEventListener) {
-        element.removeEventListener(name, handler, false);
-    } else if (element.detachEvent) {
-        element.detachEvent("on" + name, handler);
-    }
+    window.requestAnimationFrame = (window.webkitRequestAnimationFrame ||
+                                    window.mozRequestAnimationFrame ||
+                                    window.oRequestAnimationFrame ||
+                                    window.msRequestAnimationFrame ||
+                                    function (callback) { window.setTimeout(callback, 1000 / 60) });
 }
 
 (function (window) {
@@ -68,6 +42,11 @@ function event_unbind(element, name, handler) {
         "shoeImages/L.png"
     ];
 
+    function add_mod(value, delta, count) {
+        var n = (value + delta) % count;
+        return n < 0 ? count + n : n;
+    }
+
     function animate(prev_time) {
         if (rotating){
             var UPDATE_INTERVAL = 1000 / 20; // rotation speed in milliseconds per frame
@@ -82,6 +61,44 @@ function event_unbind(element, name, handler) {
             }
         }
         window.requestAnimationFrame(delay(animate, prev_time));
+    }
+
+    function css_class_exists(element, name) {
+        return !!element.className.match("(?:\\s|^)" + name + "(?:\\s|$)");
+    }
+
+    function css_class_add(element, name) {
+        if (!css_class_exists(element, name)) {
+            element.className += " " + name;
+        }
+    }
+
+    function css_class_remove(element, name) {
+        if (css_class_exists(element, name)) {
+            var re = new RegExp("(?:\\s|^)" + name + "(?:\\s|$)");
+            element.className = element.className.replace(re, "");
+        }
+    }
+
+    function delay(f) {
+        var _arguments = Array.prototype.slice.call(arguments, 1);
+        return function () { f.apply(window, _arguments) };
+    }
+
+    function event_bind(element, name, handler) {
+        if (element.addEventListener) {
+            element.addEventListener(name, handler, false);
+        } else if (element.attachEvent) {
+            element.attachEvent("on" + name, handler);
+        }
+    }
+
+    function event_unbind(element, name, handler) {
+        if (element.removeEventListener) {
+            element.removeEventListener(name, handler, false);
+        } else if (element.detachEvent) {
+            element.detachEvent("on" + name, handler);
+        }
     }
 
     function load_frame(index) {
@@ -140,7 +157,11 @@ function event_unbind(element, name, handler) {
         if (dragging && frames.length > 0) {
             var v = e || window.event;
 
-            click = false;
+            if (click && x_prev !== v.screenX) {
+                css_class_add(document.body, "cursor-drag");
+                css_class_remove(container, "cursor-over");
+                click = false;
+            }
             forwards = x_prev < v.screenX
             rotating = true;
             x_prev = v.screenX;
@@ -178,6 +199,12 @@ function event_unbind(element, name, handler) {
                 event_bind(container, "touchstart", zoom_ontouchstart);
                 event_bind(container, "touchmove", zoom_ontouchmove);
                 event_bind(container, "touchend", zoom_ontouchend);
+
+                css_class_add(document.body, "cursor-reduce");
+                css_class_remove(container, "cursor-over");
+            } else {
+                css_class_add(container, "cursor-over");
+                css_class_remove(document.body, "cursor-drag");
             }
             dragging = false;
             rotating = false;
@@ -249,6 +276,9 @@ function event_unbind(element, name, handler) {
                 event_bind(container, "touchstart", rotate_ontouchstart);
                 event_bind(container, "touchmove", rotate_ontouchmove);
                 event_bind(container, "touchend", rotate_ontouchend);
+
+                css_class_add(container, "cursor-over");
+                css_class_remove(document.body, "cursor-reduce");
             }
             dragging = false;
         }
@@ -291,6 +321,8 @@ function event_unbind(element, name, handler) {
             container.removeChild(container.firstChild);
         }
         load_frame(0);
+
+        css_class_add(container, "cursor-over");
 
         // start rotation
         forwards = Math.random() < 0.5;
