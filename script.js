@@ -1,4 +1,4 @@
-/* -*- mode:javascript; coding:utf-8; -*- Time-stamp: <script.js - root> */
+/* -*- mode:javascript; coding:utf-8; -*- Time-stamp: <script.js - akonsu> */
 
 //
 // fix window.requestAnimationFrame
@@ -12,6 +12,7 @@ if (!window.requestAnimationFrame) {
 }
 
 (function (window) {
+    var auto_rotate = true;
     var click;
     var container;
     var dragging = false;
@@ -139,12 +140,19 @@ if (!window.requestAnimationFrame) {
             };
             image.src = loadOrder[index];
         }
+        else if (auto_rotate) {
+            // start rotation
+            forwards = Math.random() < 0.5;
+            rotating = true;
+            animate(+new Date());
+        }
     }
 
     function rotate_onmousedown(e) {
         if (!dragging) {
             var v = e || window.event;
 
+            auto_rotate = false;
             click = true;
             dragging = true;
             rotating = false;
@@ -157,14 +165,19 @@ if (!window.requestAnimationFrame) {
         if (dragging && frames.length > 0) {
             var v = e || window.event;
 
-            if (click && x_prev !== v.screenX) {
-                css_class_add(document.body, "cursor-drag");
-                css_class_remove(container, "cursor-over");
-                click = false;
+            var DELTA = 3; // minimal number of pixels that the mouse (a finger) has to move
+            var d = x_prev - v.screenX;
+
+            if (Math.abs(d) > DELTA) {
+                if (click) {
+                    css_class_add(document.body, "cursor-drag");
+                    css_class_remove(container, "cursor-over");
+                    click = false;
+                }
+                forwards = d < 0
+                rotating = true;
+                x_prev = v.screenX;
             }
-            forwards = x_prev < v.screenX
-            rotating = true;
-            x_prev = v.screenX;
         }
         return false;
     }
@@ -323,10 +336,5 @@ if (!window.requestAnimationFrame) {
         load_frame(0);
 
         css_class_add(container, "cursor-over");
-
-        // start rotation
-        forwards = Math.random() < 0.5;
-        rotating = true;
-        animate(+new Date());
     };
 })(window);
