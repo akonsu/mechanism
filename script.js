@@ -144,7 +144,6 @@ if (!window.requestAnimationFrame) {
             // start rotation
             forwards = Math.random() < 0.5;
             rotating = true;
-            animate(+new Date());
         }
     }
 
@@ -336,5 +335,8 @@ if (!window.requestAnimationFrame) {
         load_frame(0);
 
         css_class_add(container, "cursor-over");
+
+        // start animation loop
+        animate(+new Date());
     };
 })(window);
