@@ -21,7 +21,7 @@ if (!window.requestAnimationFrame) {
     var forwards;
     var frame_num = 0;
     var frames = [];
-    var rotating;
+    var rotating = false;
     var x_prev;
 
     var loadOrder = [
