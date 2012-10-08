@@ -11,6 +11,29 @@ if (!window.requestAnimationFrame) {
                                     function (callback) { window.setTimeout(callback, 1000 / 60) });
 }
 
+//
+// fix array filter
+//
+if (!Array.prototype.filter) {
+    Array.prototype.filter = function(f, thisp) {
+        "use strict";
+
+        var t = Object(this);
+        var r = [];
+
+        for (var i = 0, c = t.length >>> 0; i < c; i++) {
+            if (i in t) {
+                var v = t[i]; // in case f mutates this
+
+                if (f.call(thisp, v, i, t)) {
+                    r.push(v);
+                }
+            }
+        }
+        return r;
+    };
+}
+
 (function (window) {
     var auto_rotate = true;
     var click;
@@ -25,22 +48,22 @@ if (!window.requestAnimationFrame) {
     var x_prev;
 
     var loadOrder = [
-        "shoeImages/A.png",
-        "shoeImages/I.png",
-        "shoeImages/E.png",
-        "shoeImages/M.png",
-        "shoeImages/C.png",
-        "shoeImages/K.png",
-        "shoeImages/G.png",
-        "shoeImages/O.png",
-        "shoeImages/F.png",
-        "shoeImages/N.png",
-        "shoeImages/B.png",
-        "shoeImages/J.png",
-        "shoeImages/P.png",
-        "shoeImages/H.png",
-        "shoeImages/D.png",
-        "shoeImages/L.png"
+        "shoeImages/A.jpg",
+        "shoeImages/I.jpg",
+        "shoeImages/E.jpg",
+        "shoeImages/M.jpg",
+        "shoeImages/C.jpg",
+        "shoeImages/K.jpg",
+        "shoeImages/G.jpg",
+        "shoeImages/O.jpg",
+        "shoeImages/F.jpg",
+        "shoeImages/N.jpg",
+        "shoeImages/B.jpg",
+        "shoeImages/J.jpg",
+        "shoeImages/P.jpg",
+        "shoeImages/H.jpg",
+        "shoeImages/D.jpg",
+        "shoeImages/L.jpg"
     ];
 
     function add_mod(value, delta, count) {
@@ -76,8 +99,10 @@ if (!window.requestAnimationFrame) {
 
     function css_class_remove(element, name) {
         if (css_class_exists(element, name)) {
-            var re = new RegExp("(?:\\s|^)" + name + "(?:\\s|$)");
-            element.className = element.className.replace(re, "");
+            element.className = (element.className
+                                 .split(" ")
+                                 .filter(function (x) { return x.length > 0 && x != name })
+                                 .join(" "));
         }
     }
 
@@ -181,9 +206,10 @@ if (!window.requestAnimationFrame) {
         return false;
     }
 
-    function rotate_onmouseup() {
+    function rotate_onmouseup(e) {
         if (dragging) {
             if (click) {
+                var v = e || window.event;
                 var frame = frames[frame_num];
 
                 frame.style.width = "auto";
@@ -212,7 +238,7 @@ if (!window.requestAnimationFrame) {
                 event_bind(container, "touchmove", zoom_ontouchmove);
                 event_bind(container, "touchend", zoom_ontouchend);
 
-                css_class_add(document.body, "cursor-reduce");
+                css_class_add(container, "cursor-reduce");
                 css_class_remove(container, "cursor-over");
             } else {
                 css_class_add(container, "cursor-over");
@@ -261,8 +287,12 @@ if (!window.requestAnimationFrame) {
 
             frame.style.left = x + "px";
             frame.style.top = y + "px";
-            click = false;
 
+            if (click) {
+                css_class_add(document.body, "cursor-zoom-drag");
+                css_class_remove(container, "cursor-reduce");
+                click = false;
+            }
             return false;
         }
     }
@@ -290,7 +320,11 @@ if (!window.requestAnimationFrame) {
                 event_bind(container, "touchend", rotate_ontouchend);
 
                 css_class_add(container, "cursor-over");
-                css_class_remove(document.body, "cursor-reduce");
+                css_class_remove(container, "cursor-reduce");
+            }
+            else {
+                css_class_add(container, "cursor-reduce");
+                css_class_remove(document.body, "cursor-zoom-drag");
             }
             dragging = false;
         }

@@ -27,3 +27,6 @@ div.animation img {
 .cursor-reduce {
     cursor: url("cursorImages/cuReduce.ico"), auto;
 }
+.cursor-zoom-drag {
+    cursor: url("cursorImages/cuZoomDrag.ico"), auto;
+}
