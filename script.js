@@ -45,6 +45,8 @@ if (!Array.prototype.filter) {
     var frame_num = 0;
     var frames = [];
     var rotating = false;
+    var x_offset;
+    var y_offset;
     var x_prev;
 
     var loadOrder = [
@@ -180,6 +182,9 @@ if (!Array.prototype.filter) {
             click = true;
             dragging = true;
             rotating = false;
+
+            x_offset = v.offsetX;
+            y_offset = v.offsetY;
             x_prev = v.screenX;
         }
         return false;
@@ -206,22 +211,31 @@ if (!Array.prototype.filter) {
         return false;
     }
 
-    function rotate_onmouseup(e) {
+    function rotate_onmouseup() {
         if (dragging) {
             if (click) {
-                var v = e || window.event;
                 var frame = frames[frame_num];
+                var r_orig = frame.getBoundingClientRect();
 
                 frame.style.width = "auto";
                 frame.style.height = "auto";
 
                 var r = frame.getBoundingClientRect();
 
-                frame.client_width = r.right - r.left;
-                frame.client_height = r.bottom - r.top;
+                frame.client_width = r.width;
+                frame.client_height = r.height;
 
-                var x = (container.client_width - frame.client_width) / 2;
-                var y = (container.client_height - frame.client_height) / 2;
+                var dw = container.client_width - r.width;
+                var dh = container.client_height - r.height;
+
+                var dx = (x_offset - parseInt(frame.style.left + 0) - r_orig.width / 2);
+                var dy = (y_offset - parseInt(frame.style.top + 0) - r_orig.height / 2);
+
+                var cx = dw / 2 - dx * r.width / r_orig.width;
+                var cy = dh / 2 - dy * r.height / r_orig.height;
+
+                var x = Math.min(0, Math.max(dw, cx));
+                var y = Math.min(0, Math.max(dh, cy));
 
                 frame.style.left = x + "px";
                 frame.style.top = y + "px";
@@ -351,8 +365,8 @@ if (!Array.prototype.filter) {
 
         var r = container.getBoundingClientRect();
 
-        container.client_width = r.right - r.left;
-        container.client_height = r.bottom - r.top;
+        container.client_width = r.width;
+        container.client_height = r.height;
 
         container.onmousedown = rotate_onmousedown;
         document.onmousemove = rotate_onmousemove;
