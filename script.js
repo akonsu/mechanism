@@ -16,7 +16,7 @@ if (!window.requestAnimationFrame) {
 //
 if (!Array.prototype.filter) {
     Array.prototype.filter = function(f, thisp) {
-        "use strict";
+        'use strict';
 
         var t = Object(this);
         var r = [];
@@ -129,6 +129,18 @@ if (!Array.prototype.filter) {
         }
     }
 
+    function get_bounding_rect(e) {
+        var r = e.getBoundingClientRect();
+
+        if (!r.height) {
+            r.height = r.bottom - r.top;
+        }
+        if (!r.width) {
+            r.width = r.right - r.left;
+        }
+        return r;
+    }
+
     function load_frame(index) {
         if (index < loadOrder.length) {
             var image = new Image();
@@ -215,12 +227,12 @@ if (!Array.prototype.filter) {
         if (dragging) {
             if (click) {
                 var frame = frames[frame_num];
-                var r_orig = frame.getBoundingClientRect();
+                var r_orig = get_bounding_rect(frame);
 
                 frame.style.width = "auto";
                 frame.style.height = "auto";
 
-                var r = frame.getBoundingClientRect();
+                var r = get_bounding_rect(frame);
 
                 frame.client_width = r.width;
                 frame.client_height = r.height;
@@ -363,7 +375,7 @@ if (!Array.prototype.filter) {
     window.onload = function () {
         container = document.getElementById("container");
 
-        var r = container.getBoundingClientRect();
+        var r = get_bounding_rect(container);
 
         container.client_width = r.width;
         container.client_height = r.height;
