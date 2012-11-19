@@ -132,10 +132,10 @@ if (!Array.prototype.filter) {
     function get_bounding_rect(e) {
         var r = e.getBoundingClientRect();
 
-        if (!r.height) {
+        if (typeof r.height == 'undefined'){
             r.height = r.bottom - r.top;
         }
-        if (!r.width) {
+        if (typeof r.width == 'undefined'){
             r.width = r.right - r.left;
         }
         return r;
