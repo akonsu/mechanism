@@ -1,19 +1,19 @@
 @charset "UTF-8";
 
 ul#downloadIndicator li {
+    border: 1px solid green;
     display: inline;
     margin: 0 0.5em;
 }
-div.animation {
+
+div.mechBoundingBox {
+    position: relative;
     margin: 40px;
     overflow: hidden;
     width: 360px;
-    height: 428px;
-}
-div.animation img {
-    position: relative;
-    width: 300px;
-    height: auto;
+    height: 425px;
+    padding: 0;
+    z-index: 0;
 
     -khtml-user-select: none;
     -moz-user-select: none;
@@ -22,18 +22,52 @@ div.animation img {
     -webkit-user-select: none;
     user-select: none;
 }
-.cursor-none {
-    cursor: none;
+
+span.mechAnimationContainer {
+    cursor: inherit;
+    position: absolute;
+    height: 425px;
+    width: 360px;
+    padding: 0;
+    z-index: 1;
+    
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
-.cursor-drag {
-    cursor: url("cursorImages/cuDrag.ico"), auto;
+
+span.mechAnimationContainer img {
+    cursor: inherit;
+    position: absolute;
+    width: 360px;
+    height: auto;
+    padding: 0;
+    z-index: 1;
+
 }
-.cursor-over {
-    cursor: url("cursorImages/cuOver.ico"), auto;
+
+span.mechAncileryImages {
+    cursor: inherit;
+    position: absolute;
+    width: 360px;
+    height: 425px;
+    padding: 0;
+    z-index: 2;
+
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;   
 }
-.cursor-reduce {
-    cursor: url("cursorImages/cuReduce.ico"), auto;
-}
-.cursor-zoom-drag {
-    cursor: url("cursorImages/cuZoomDrag.ico"), auto;
+
+div.textDiv {
+    position: relative;
+    border: 1px solid green;
+    /*left: 400px;
+    top: -450px;*/
 }
