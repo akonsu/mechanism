@@ -64,10 +64,3 @@ span.mechAncileryImages {
     -webkit-user-select: none;
     user-select: none;   
 }
-
-div.textDiv {
-    position: relative;
-    border: 1px solid green;
-    /*left: 400px;
-    top: -450px;*/
-}

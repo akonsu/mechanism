@@ -48,14 +48,15 @@ if (!Array.prototype.filter) {
     var forwards;
     var frame_num = 0;
     var frames = [];
-    var mouseover_counter;
+    var mousemoveCounter;
     var rotating = false;
     var x_offset;
     var y_offset;
     var x_prev;
 
-    var UPDATE_INTERVAL = 1000 / 5; // initial rotation speed in milliseconds per frame
-    var UPDATE_INTERVAL_DRAG = 1000 / 20; // rotation speed after clicking the image in milliseconds per frame
+    //Rotation speeds:
+    var UPDATE_INTERVAL = 1000 / 5; // initial rotation speed (in milliseconds per frame)
+    var UPDATE_INTERVAL_DRAG = 1000 / 20; // rotation speed after clicking the image (in milliseconds per frame)
 
 
     // Inline cursor styles: 
@@ -128,8 +129,9 @@ if (!Array.prototype.filter) {
         return function () { f.apply(window, _arguments) };
     }
 
-    function event_bind(element, name, handler,capture) {
+    function event_bind(element, name, handler,capture) { 
         //capture=true for capture phase listener, capture= false for bubble phase listener
+
         if (element.addEventListener) {
             element.addEventListener(name, handler, capture);
         } else if (element.attachEvent) {
@@ -139,6 +141,7 @@ if (!Array.prototype.filter) {
 
     function event_unbind(element, name, handler,capture) {
         //capture=true for capture phase listener, capture= false for bubble phase listener
+
         if (element.removeEventListener) {
             element.removeEventListener(name, handler, capture);
         } else if (element.detachEvent) {
@@ -206,8 +209,7 @@ if (!Array.prototype.filter) {
     function rotate_onmousedown(e) {
         event_bind(document,"mousemove",rotate_onmousemove,false);
         event_bind(document, "touchmove",rotate_ontouchmove,false);
-        // event_bind(mechAniCalCursorContainer,"mousemove",rotate_onmousemove,false);
-        // event_bind(mechAniCalCursorContainer, "touchmove",rotate_ontouchmove,false);
+
         if (!dragging) {
             var v = e || window.event;
 
@@ -251,8 +253,6 @@ if (!Array.prototype.filter) {
     function rotate_onmouseup() {
         event_unbind(document,"mousemove",rotate_onmousemove,false);
         event_unbind(document,"touchmove",rotate_ontouchmove,false);
-        // event_unbind(mechAniCalCursorContainer,"mousemove",rotate_onmousemove,false);
-        // event_unbind(mechAniCalCursorContainer,"touchmove",rotate_ontouchmove,false);
 
         if (dragging) {
             if (click) {
@@ -321,11 +321,9 @@ if (!Array.prototype.filter) {
     }
 
     function zoom_onmousedown(e) {
-        mouseover_counter=0;
+        mousemoveCounter=0; //mousemove events counter
         event_bind(document,"mousemove",zoom_onmousemove,false);
         event_bind(document,"touchmove",zoom_ontouchmove,false);
-        // event_bind(mechAniCalCursorContainer,"mousemove",zoom_onmousemove,false);
-        // event_bind(mechAniCalCursorContainer,"touchmove",zoom_ontouchmove,false);
  
         if (!dragging) {
 
@@ -342,10 +340,12 @@ if (!Array.prototype.filter) {
 
     function zoom_onmousemove(e) {
         if (e.preventDefault) e.preventDefault();
-        mouseover_counter=mouseover_counter+1; //counts mousemove events
-        var mouseover_counter_rem=mouseover_counter%5; 
 
-        if (dragging & mouseover_counter_rem===0) { //following code executes on every fifth mousmove event
+        var mousemoveModulus=5; //picture will be moved on every mousemoveModulus'th mousemove event only
+        mousemoveCounter=mousemoveCounter+1; 
+        var mousemoveRemainder=mousemoveCounter%5;  
+
+        if (dragging & mousemoveRemainder===0) { //following code can execute on every mousemoveModulus'th mousmove event only
 
             var v = e || window.event;
             var frame = frames[frame_num];
@@ -367,8 +367,6 @@ if (!Array.prototype.filter) {
     function zoom_onmouseup() {
         event_unbind(document,"mousemove",zoom_onmousemove,false);
         event_unbind(document,"touchmove",zoom_ontouchmove,false);
-        // event_unbind(mechAniCalCursorContainer,"mousemove",zoom_onmousemove,false);
-        // event_unbind(mechAniCalCursorContainer,"touchmove",zoom_ontouchmove,false);
 
         if (dragging) {
 
@@ -394,13 +392,6 @@ if (!Array.prototype.filter) {
                 event_bind(document, "touchend", rotate_ontouchend,false);
 
                 mechAniCalCursorContainer.style.cursor=cursorOver; 
-
-        //mechAniCalContainer.style.cursor=cursorOver; //new addition
-        // frame.style.cursor=cursorOver; //new addition
-        // mechAniCalContainer.img.style.cursor=cursorOver; //new addition
-        // document.getElementById("mechAncileryImages").style.cursor=cursorOver;//new addition
-        // document.body.style.cursor=cursorOver;//new addition
-
             }
             else {
                 mechAniCalCursorContainer.style.cursor=cursorReduce; 
@@ -450,17 +441,10 @@ if (!Array.prototype.filter) {
         cursor_box = document.getElementById("cursorBox");
 
         load_frame(0);
-
         mechAniCalCursorContainer.style.cursor=cursorOver;
-        //??document.body.style.cursor=cursorOver; 
-try {
-    document.execCommand('BackgroundImageCache', false, true);
-} 
-catch (e) {}
-
+        
         // start animation loop
         window.requestAnimationFrame(delay(animate, +new Date()));        
-        //animate(+new Date());
     };
 
 })(window);
